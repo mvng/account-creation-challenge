@@ -7,13 +7,13 @@ class ApiControllerTest < ActionDispatch::IntegrationTest
 
   test "create_account fails with missing username" do
     post api_create_account_path, params: { password: '123' }
-    assert_response :unprocessable_entity
+    assert_response :bad_request
     assert_equal JSON.parse(response.body)['errors'], "param is missing or the value is empty: username"
   end
 
   test "create_account fails with missing password" do
     post api_create_account_path, params: { username: '123' }
-    assert_response :unprocessable_entity
+    assert_response :bad_request
     assert_equal JSON.parse(response.body)['errors'], "param is missing or the value is empty: password"
   end
 

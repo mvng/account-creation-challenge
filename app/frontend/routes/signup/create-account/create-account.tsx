@@ -3,7 +3,6 @@ import WealthfrontLogo from '../../../../assets/images/wealthfront_logo.tsx';
 import { Input } from 'app/frontend/reusable-components/input/input.tsx';
 import { Button } from 'app/frontend/reusable-components/button/button.tsx';
 import { Card } from 'app/frontend/reusable-components/card/card.tsx';
-import './create-account.css';
 
 export function CreateAccount() {
   const [username, setUsername] = useState('');
