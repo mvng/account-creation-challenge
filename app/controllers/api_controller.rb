@@ -23,6 +23,11 @@ class ApiController < ApplicationController
       return
     end
 
+    if not password_contains_letter_and_number?(user_params[:password])
+      render json: { errors: "Password must include at least one letter and one number" }, status: :unprocessable_entity
+      return
+    end
+
     strength_score = check_password_strength(user_params[:password])
 
     if strength_score < 2
@@ -41,9 +46,14 @@ class ApiController < ApplicationController
       render json: { success: false, errors: user.errors.full_messages }, status: :unprocessable_entity
     end
   end
+  private
 
   def check_password_strength(password)
     result = Zxcvbn.test(password)
     result.score
+  end
+
+  def password_contains_letter_and_number?(password)
+    password.match?(/[a-zA-Z]/) && password.match?(/\d/)
   end
 end

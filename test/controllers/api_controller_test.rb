@@ -25,14 +25,32 @@ class ApiControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "create_account fails with weak password" do
-    post api_create_account_path, params: { username: '1234567890', password: '1234567890123456789' }
+    post api_create_account_path, params: { username: '1234567890', password: '1234567890123456789a' }
     assert_response :unprocessable_entity
     assert_equal JSON.parse(response.body)['errors'], "Weak password"
   end
 
   test "create_account succeeds with valid username and password" do
-    post api_create_account_path, params: { username: '1234567890', password: 'skfhsdfuisfhsfdhiusdfiuk' }
+    post api_create_account_path, params: { username: '1234567890', password: 'StrongPass12345' }
     assert_response :created
     assert_equal JSON.parse(response.body)['success'], true
+  end
+
+  test "create_account fails with password with no letter" do
+    post api_create_account_path, params: { username: '1234567890', password: '12345678901234567890' }
+    assert_response :unprocessable_entity
+    assert_equal JSON.parse(response.body)['errors'], "Password must include at least one letter and one number"
+  end
+
+  test "create_account fails with password with no number" do
+    post api_create_account_path, params: { username: '1234567890', password: 'abcdefghijABCDEFGHIJ' }
+    assert_response :unprocessable_entity
+    assert_equal JSON.parse(response.body)['errors'], "Password must include at least one letter and one number"
+  end
+
+  test "create_account fails with password that has Zxcvbn score < 2" do
+    post api_create_account_path, params: { username: '1234567890', password: 'password123' }
+    assert_response :unprocessable_entity
+    assert_equal JSON.parse(response.body)['errors'], "Weak password"
   end
 end
