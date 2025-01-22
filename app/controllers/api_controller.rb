@@ -1,4 +1,3 @@
-# app/controllers/api_controller.rb
 require 'zxcvbn'
 
 class ApiController < ApplicationController
@@ -10,8 +9,22 @@ class ApiController < ApplicationController
     render json: { score: result.score }
   end
 
+  def check_session
+    if current_user
+      render json: {
+        logged_in: true,
+        user: current_user.as_json(except: [:password_digest])
+    }
+    else 
+      render json: { logged_in: false}
+    end
+  end
+
   def create_account
-    user_params = params.permit(:username, :password)
+    Rails.logger.info("create_account: Params: #{params.inspect}")
+
+    # TODO: not sure why :api is wrapping the username/password here when submitting via json instead of form.
+    user_params = params.permit(:username, :password,)
 
     if user_params[:username].blank?
       render json: { errors: "param is missing or the value is empty: username" }, status: :bad_request
@@ -38,7 +51,12 @@ class ApiController < ApplicationController
     user = User.new(user_params)
     if user.valid?
       if user.save
-        render json: { success: true, message: 'success' }, status: :created
+        session[:user_id] = user.id
+        render json: { 
+          success: true, 
+          message: 'success',
+          user: user.as_json(except: [:password_digest])
+          }, status: :created
       else
         render json: { success: false, errors: user.errors.full_messages }, status: :unprocessable_entity
       end
@@ -46,6 +64,15 @@ class ApiController < ApplicationController
       render json: { success: false, errors: user.errors.full_messages }, status: :unprocessable_entity
     end
   end
+
+  def logout
+    Rails.logger.info("logout: user_id: #{session[:user_id]}")
+    session[:user_id] = nil
+    Current.user = nil
+    
+    redirect_to root_path, notice: 'Successfully logged out.'
+  end
+
   private
 
   def check_password_strength(password)
