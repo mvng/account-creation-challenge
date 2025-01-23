@@ -23,6 +23,9 @@ class ApiController < ApplicationController
   def create_account
     Rails.logger.info("create_account: Params: #{params.inspect}")
 
+    # Simulating network latency in production
+    sleep(0.5) if Rails.env.development?
+
     # TODO: not sure why :api is wrapping the username/password here when submitting via json instead of form.
     user_params = params.permit(:username, :password,)
 

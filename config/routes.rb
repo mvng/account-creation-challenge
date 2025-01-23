@@ -1,7 +1,10 @@
 Rails.application.routes.draw do
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
   get '/', to: 'application#render_react', as: :root
+  
+  # Catch-all route for '/signup' and any sub-paths under '/signup/*'
   get 'signup/*all', to: 'application#render_react', as: :signup
+  
   get 'create-account', to: 'application#render_react', as: :create_account
   post 'api/create-account', to: 'api#create_account'
 
@@ -15,4 +18,5 @@ Rails.application.routes.draw do
   get 'logout', to: 'api#logout'
   post 'api/logout', to: 'api#logout'
 
+  match '*path', to: 'errors#not_found', via: :all
 end

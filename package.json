@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "vite",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "test": "jest",
+    "test": "jest --coverage",
     "prepare": "husky install"
   },
   "lint-staged": {

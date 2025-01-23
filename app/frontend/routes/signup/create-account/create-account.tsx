@@ -1,22 +1,29 @@
 import React, { useState, useEffect } from 'react';
+
+// Assets
 import WealthfrontLogo from '../../../../assets/images/wealthfront_logo.tsx';
-import { Input } from '../../../reusable-components/input/input.tsx'
+
+// Components
+import { Input } from '../../../reusable-components/input/input.tsx';
 import { Button } from '../../../reusable-components/button/button.tsx';
 import { Card } from '../../../reusable-components/card/card.tsx';
+
+// Utilities
 import { api } from '../../../services/api.ts';
+import { validatePasswordMessage } from '../../../utilities/validatePassword/';
 
-const hasLetterRegex = /[A-Za-z]/; // At least one letter
-const hasNumberRegex = /\d/; // At least one numberconst 
-
+// Constants
 const MIN_PASSWORD_LENGTH = 20;
 const MIN_USERNAME_LENGTH = 10;
 const MAX_INPUT_LENGTH = 50;
+const PASSWORD_STRENGTH_MESSAGES = ['Very Weak', 'Weak', 'Moderate', 'Strong', 'Very Strong'];
 
 export function CreateAccount() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
-  const [passwordStrength, setPasswordStrength] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [username, setUsername] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [message, setMessage] = useState<string>('');
+  const [passwordStrengthMessage, setPasswordStrengthMessage] = useState<string>('');
   const [debouncedPassword, setDebouncedPassword] = useState<string>('');
   const [isPasswordValid, setIsPasswordValid] = useState<boolean>(false);
 
@@ -24,7 +31,7 @@ export function CreateAccount() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedPassword(password);
-    }, 150);
+    }, 300);
 
     return () => clearTimeout(timer);
   }, [password]);
@@ -33,36 +40,14 @@ export function CreateAccount() {
   useEffect(() => {
     const validatePassword = async () => {
       if (!debouncedPassword) {
-        setPasswordStrength('');
+        setPasswordStrengthMessage('');
         setIsPasswordValid(false);
         return;
       }
 
-      // Simple validators before checking server-side
-      if (debouncedPassword.length < MIN_PASSWORD_LENGTH) {
-        setPasswordStrength(`Password should be at least ${MIN_PASSWORD_LENGTH} characters`);
+      if (validatePasswordMessage(debouncedPassword)) {
         setIsPasswordValid(false);
-        return;
-      }
-
-      if (debouncedPassword.length > MAX_INPUT_LENGTH) {
-        setPasswordStrength(`Password should be less than ${MAX_INPUT_LENGTH} characters`);
-        setIsPasswordValid(false);
-        return;
-      }
-
-      // Better messaging when deciding on password
-      if (!hasLetterRegex.test(debouncedPassword) && !hasNumberRegex.test(debouncedPassword)) {
-        setPasswordStrength('Password should have at least one letter and one number');
-        setIsPasswordValid(false);
-        return;
-      } else if (!hasLetterRegex.test(debouncedPassword)) {
-        setPasswordStrength('Password should have at least one letter');
-        setIsPasswordValid(false);
-        return;
-      } else if (!hasNumberRegex.test(debouncedPassword)) {
-        setPasswordStrength('Password should have at least one number');
-        setIsPasswordValid(false);
+        setPasswordStrengthMessage(validatePasswordMessage(debouncedPassword));
         return;
       }
 
@@ -71,14 +56,13 @@ export function CreateAccount() {
         formData.append('password', debouncedPassword);
 
         const response = await api('/api/password-strength', 'POST', formData);
-        const strengthMessages = ['Very Weak', 'Weak', 'Moderate', 'Strong', 'Very Strong'];
         const score = response.score;
 
-        setPasswordStrength(`Password Strength is ${strengthMessages[score]}` || 'Unknown');
+        setPasswordStrengthMessage(`Password Strength is ${PASSWORD_STRENGTH_MESSAGES[score]}`);
         setIsPasswordValid(score >= 3); // imitating backend scoring system
       } catch (err) {
         console.error('Error checking password strength:', err);
-        setPasswordStrength('Error calculating strength');
+        setPasswordStrengthMessage('Error calculating strength');
         setIsPasswordValid(false);
       }
     };
@@ -86,11 +70,12 @@ export function CreateAccount() {
     validatePassword();
   }, [debouncedPassword]);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setIsLoading(true)
 
     if (!isPasswordValid) {
-      return
+      return setIsLoading(false);
     }
 
     const formData = new FormData();
@@ -100,15 +85,17 @@ export function CreateAccount() {
     try {
       const response = await api('/api/create-account', 'POST', formData);
       if (response.success) {
-        window.location.href = '/';
-        console.log('Account created', response);
+        window.location.href = '/signup/account-selection';
       } else {
         setMessage('Failed to create the account.');
       }
     } catch (err) {
+      setIsLoading(false)
       console.error(err);
       setMessage('An error occurred while creating the account.');
     }
+
+    setIsLoading(false)
   };
 
   return (
@@ -125,6 +112,8 @@ export function CreateAccount() {
             onChange={(e) => setUsername(e.target.value)}
             minLength={MIN_USERNAME_LENGTH}
             maxLength={MAX_INPUT_LENGTH}
+            required
+            aria-required="true"
           />
           <Input
             label="Password"
@@ -133,15 +122,20 @@ export function CreateAccount() {
             minLength={MIN_PASSWORD_LENGTH}
             maxLength={MAX_INPUT_LENGTH}
             onChange={(e) => setPassword(e.target.value)}
+            aria-required="true"
+            required
           >
-            {passwordStrength && (
-              <p className={`text-xs -mt-2 mb-4 ${isPasswordValid ? 'text-green-500' : 'text-red-500'}`}>
-                {passwordStrength}
+            {passwordStrengthMessage && (
+              <p
+                id="password-strength-message"
+                aria-describedby="password-strength-message"
+                className={`text-xs -mt-2 mb-4 ${isPasswordValid ? 'text-green-500' : 'text-red-500'}`}
+              >
+                {passwordStrengthMessage}
               </p>
             )}
           </Input>
-
-          <Button type="submit">Create Account</Button>
+          <Button loading={isLoading}type="submit">Create Account</Button>
         </form>
         {message && <p className="message">{message}</p>}
       </Card>
