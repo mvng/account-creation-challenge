@@ -1,3 +1,6 @@
+// Utility takes in a password as a string and returns error messages related from basic patterns.
+// returns empty string if no issues found.
+
 const hasLetterRegex = /[A-Za-z]/; // At least one letter
 const hasNumberRegex = /\d/; // At least one numberconst
 

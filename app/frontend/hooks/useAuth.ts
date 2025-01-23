@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { api } from '../services/api'
 
 interface User {
   id: number;
@@ -24,14 +25,11 @@ export function useAuth() {
 
   const checkAuth = async () => {
     try {
-      const response = await fetch('/api/check_session', {
-        credentials: 'include'
-      });
-      const data = await response.json();
+      const response = await api('/api/check_session','GET');
       
       setAuthState({
-        isLoggedIn: data.logged_in,
-        user: data.user || null,
+        isLoggedIn: response.logged_in,
+        user: response.user || null,
         isLoading: false
       });
     } catch (error) {

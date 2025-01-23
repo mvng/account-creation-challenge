@@ -1,5 +1,6 @@
 import React from 'react';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+
+// Route Components
 import { Root } from './routes/root/root.tsx';
 import { AccountSelection } from './routes/signup/account-selection/account-selection.tsx';
 import { CreateUser } from './routes/signup/create-user/create-user.tsx';
@@ -7,6 +8,9 @@ import { Deposit } from './routes/signup/deposit/deposit.tsx';
 import { JointAccess } from './routes/signup/joint-access/joint-access.tsx';
 import { StockRestrictions } from './routes/signup/stock-restrictions/stock-restrictions.tsx';
 import { CreateAccount } from './routes/signup/create-account/create-account.tsx';
+
+// Auth/Routing Components
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext.tsx';
 import { RequireAuth } from './reusable-components/require-auth/require-auth.tsx';
 import { Outlet } from 'react-router-dom';

@@ -1,19 +1,11 @@
-export const api = async (url: string, method: string, data: FormData) => {
-  // const csrfToken = getCsrfToken();
-  // if (!csrfToken) {
-  //   console.error('CSRF token is missing!');
-  //   return;
-  // }
+// Generic api function for preseting headers and csrf tokens.
 
-  const headers = {
-    // 'X-CSRF-TOKEN': csrfToken,
-  };
-
+export const api = async (url: string, method: string, data?: FormData) => {
+  // FormData submissions auto-include csrfToken
   const options: RequestInit = {
     method: method,
-    headers: headers,
     credentials: 'include',
-    body: data,  // Use FormData here
+    body: data, 
   };
 
   try {
