@@ -1,27 +1,33 @@
-import React, { ChangeEvent, useState } from 'react';
+import React, { ChangeEvent, ReactNode, useState } from 'react';
 
-interface Props {
+interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
-  onChange?: (value: string) => void;
+  children?: ReactNode;
 }
 
-export function Input({ onChange, label }: Props) {
+export function Input({ onChange, label, className, children, ...props }: Props) {
   const [value, setValue] = useState('');
-  const id = label.replace(/ /gm, '_');
+  const id = label.replace(/ /g, '_');
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     setValue(event.target.value);
-    onChange?.(event.target.value);
+    onChange?.(event);
   }
   return (
     <div>
-      <label className="block text-sm">{label}</label>
+      <label htmlFor={id} className="block text-sm text-slate-500">
+        {label}
+      </label>
       <input
         id={id}
-        className="block w-full p-2 border-4 border-solid border-slate-300"
+        className={`border-b-2 border-gray-300 focus:border-blue-500 outline-none p-2 block w-full mb-6 ${
+          className || ''
+        }`}
         value={value}
         onChange={handleChange}
+        {...props}
       />
+      {children}
     </div>
   );
 }
